@@ -1,0 +1,122 @@
+# 다항식 이진수로 바꾸기
+def extract_coefficients_and_calculate(poly):
+    def calculate_exponents(coefficients):
+        exponents = [10 ** coef for coef in coefficients[::-1]]  # 역순으로 계산
+        return sum(exponents)
+
+    # 다항식을 나타내는 문자열을 리스트로 변환
+    terms = poly.split('+')
+
+    # 계수를 저장할 리스트 초기화
+    coefficients = []
+
+    # 각 항을 순회하며 계수 추출
+    max_exponent = 0  # 가장 큰 지수를 저장할 변수 초기화
+    for term in terms:
+        # 'x'를 포함하는 항만 고려
+        if 'x' in term:
+            # 'x'를 제거하고 빈 문자열일 경우 1로 취급
+            coefficient = term.replace('x', '')
+            if coefficient == '':
+                coefficient = '1'
+            coef = int(coefficient)
+            coefficients.append(coef)
+
+            # 현재 항의 지수가 가장 큰 지수인지 확인
+            current_exponent = coef if coef != 1 else 1  # 1을 1로 취급
+            max_exponent = max(max_exponent, current_exponent)
+        else:
+            # 'x'가 없는 경우 상수항이므로 0을 추가
+            coefficients.append(0)
+
+    # 10의 거듭제곱 계산 및 합산
+    pol = calculate_exponents(coefficients)
+
+    return pol, max_exponent
+
+
+##체크썸 계산기
+def calculate_checksum(pol_str, new_data):
+    result = ""
+    zero = ""
+    new_result = ""
+    count = 1
+    for i in range(len(pol_str)):
+        zero += "0"
+
+    # 첫번째 계산
+    for i in range(len(pol_str)):  # 6자리만 계산
+        if pol_str[i] == new_data[i]:
+            result += "0"
+        else:
+            result += "1"
+
+    # 010000으로 변환
+    if new_data[len(pol_str)] == "1":
+        result = result[1:]
+        result += "1"
+    else:
+        result = result[1:]
+        result += "0"
+
+    col_num = len(new_data) - len(pol_str)
+
+    for i in range(col_num):
+        if len(new_data) > len(pol_str) + count:  # 범위를 초과하지 않도록 확인
+            if result[0] == "0":  # 앞자리가 0이면
+                for j in range(len(result)):  # 0~5
+                    if result[j] == zero[j]:  # 010000 exor 000000 연산
+                        new_result += "0"
+                    else:
+                        new_result += "1"
+            else:  # 앞자리가 0이 아니면
+                for j in range(len(pol_str)):
+                    if result[j] == pol_str[j]:  # 010000 exor 100101이랑 연산
+                        new_result += "0"
+                    else:
+                        new_result += "1"
+
+            if new_data[len(pol_str) + count] == "1":
+                new_result = new_result[1:]
+                new_result += "1"
+                result = new_result
+                new_result = ""
+                count += 1
+                if count > col_num - 1:
+                    break
+            else:
+                new_result = new_result[1:]
+                new_result += "0"
+                result = new_result
+                new_result = ""
+                count += 1
+                if count > col_num - 1:
+                    break
+
+    result = result[:-1]
+    return result
+
+
+
+polynomial = input("다항식을 입력하세요 (예: x11+x7+x4+x2+x+1): ")
+data = input("원래 데이터를 입력하세요: ")
+
+# 계수 추출 및 10의 거듭제곱 계산
+pol, max_exponent = extract_coefficients_and_calculate(polynomial)
+#x5+x2+1 -> 10^5 + 10^2 + 10^0 = 100101
+
+pol_str = str(pol)  # str형으로 치환
+
+# 결과 출력
+print(f"계산 결과: {pol}")
+
+# new_data 생성
+new_data = data + '0' * (max_exponent + 1)
+
+# new_data 출력
+print(f"새로운 데이터: {new_data}")
+
+# 체크섬 계산 및 출력
+checksum = calculate_checksum(pol_str, new_data)
+print("체크썸:", checksum)
+print("체크썸 포함 데이터:", data, checksum)
