@@ -1,0 +1,86 @@
+from tkinter import *
+import operator
+
+abcde_dic={}
+# 대문자를 소문자로 바꾸는 코드
+with open("alphabet.txt", "r") as file:
+    content = file.read()
+
+content = content.lower()
+
+with open("alphabet2.txt", "w") as file:
+    file.write(content)
+
+file=open("alphabet2.txt","r")
+file_read=list(file.read())
+
+for i in range(97,123):
+    abcde_dic[chr(i)]=0
+
+for i in file_read:
+    if i in abcde_dic:
+        abcde_dic[i]+=1
+
+with open("COUNT.txt",'w') as f:
+    for key, value in abcde_dic.items():
+        f.write("%s : %s\n" %(key,value))
+
+alpha_list=list(abcde_dic.keys())
+sort_dict=dict(sorted(abcde_dic.items(), key=operator.itemgetter(1), reverse=False))
+sort_list=list(sort_dict.keys())
+
+with open("key.txt",'w') as f:
+    for key,value in sort_dict.items():
+        f.write("%s : %s\n" %(key,value))
+
+def encryption():
+    encryption=open('Encryption.txt','w')
+    for i in file_read:
+        if 96 < ord(i) < 123:
+            temp = ord(i) - 97
+            encryption.write(sort_list[temp])
+        else:
+            encryption.write(i)
+    encryption.close()
+    print('암호화 완료!')
+
+def decryption():
+    key=open("key.txt",'r')
+    encryption=open('Encryption.txt','r')
+    decryption=open('Decryption.txt','w')
+    encryption_read=list(encryption.read())
+
+    for i in encryption_read:
+        if 96 < ord(i) < 123:
+            for j in range(0,26):
+                if i == sort_list[j]:
+                  decryption.write(alpha_list[j])
+        else:
+            decryption.write(i)
+
+    key.close()
+    encryption.close()
+    decryption.close()
+    print('복호화 완료!')
+
+window = Tk()
+window.title("암호화")
+window.geometry("410x60")
+window.resizable(width = FALSE, height = FALSE)
+
+fileLabel1 = Label(window, text = "Filename : ")
+fileLabel1.grid(row = 0, column = 0)
+
+fileEnter = Entry(window, width = 30)
+fileEnter.grid(row = 0, column = 1)
+
+Encryption_Button = Button(window, text = "암호화", command = encryption)
+Encryption_Button.grid(row = 0, column = 2)
+
+Decryption_Button = Button(window, text = "복호화", command = decryption)
+Decryption_Button.grid(row = 0, column = 3)
+
+fileLabel2 = Label(window, text = "암호화")
+fileLabel2.grid(row = 1, column = 1)
+
+window.mainloop()
